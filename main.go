@@ -6,9 +6,39 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 )
 
 const filename = "messages.txt"
+
+func getLinesChannel(f io.ReadCloser) <-chan string {
+	c := make(chan string)
+	go func() {
+		defer close(c)
+		line := ""
+		for {
+			b := make([]byte, 8)
+			n, err := f.Read(b)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					if line != "" {
+						c <- line
+					}
+					return
+				}
+				log.Fatalf("unable to read bytes from file: %v", err)
+			}
+			str := string(b[:n])
+			parts := strings.Split(str, "\n")
+			for i := range len(parts) - 1 {
+				c <- fmt.Sprintf("%s%s", line, parts[i])
+				line = ""
+			}
+			line += parts[len(parts)-1]
+		}
+	}()
+	return c
+}
 
 func main() {
 	file, err := os.Open(filename)
@@ -17,15 +47,8 @@ func main() {
 	}
 	defer file.Close()
 
-	for {
-		b := make([]byte, 8)
-		n, err := file.Read(b)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			log.Fatalf("unable to read bytes from file: %v", err)
-		}
-		fmt.Printf("read: %s\n", string(b[:n]))
+	c := getLinesChannel(file)
+	for item := range c {
+		fmt.Printf("read: %s\n", item)
 	}
 }
