@@ -6,7 +6,7 @@ Boot.dev Golang HTTP from TCP Project.
 
 Transmission Control Protocol is the primary communication protocol for the internet. Allows *ordered data* to be safely sent across the internet.
 
-Data is split and sent in *packets*. Packets are sent and arrive potentially out of order and are reassembled on the receiver side. Without TCP you cannot guarantee the order.
+Data is split and sent in *packets*. Packets are sent and arrive potentially out of order and are reassembled on the receiver side. Without TCP you cannot guarantee the order, TCP guarantees that the data arrive in order.
 
 High level differences between TCP and User Datagramn Protocol (UDP):
 |              | TCP | UDP |
@@ -28,6 +28,69 @@ When reading from a file, you're in control of the reading process, you *pull* d
 - when to stop reading.
 
 When reading form a network connection, the data is *pushed* to us by the remote sender. We don't have control over when the data arrives, how much arrives or when it stops arriving.
+
+## HTTP
+
+HTTP/1.1 is a text protocol that works over TCP. If the HTTP request or response is too big to fit into a single TCP packet it can be broken up into many packets and reconstructed in the correct order on the receiver side.
+
+`HTTP-message` is the format that the text in the HTTP request or response must follow (CRLF is `\r\n`):
+```
+start-line CRLF
+*( field-line CRLF )
+CRLF
+[ message-body ]
+```
+
+| Part | Example | Description |
+| --- | --- | --- |
+| start-line CRLF | POST /users/primeagen HTTP/1.1 | The request (for a request) or status (for a response) line |
+| *( field-line CRLF ) | Host: google.com | Zero or more lines of HTTP headers. These are key-value pairs. |
+| CRLF | | A blank line that separates the headers from the body. |
+| [ message-body ] | {"key": "value"} | The body of the message. This is optional. |
+
+Check [RFC 9112](https://datatracker.ietf.org/doc/html/rfc9112) and [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110) for detailed info about HTTP semantics.
+
+Example of HTTP `GET` request:
+```
+GET /goodies HTTP/1.1
+Host: localhost:42069
+User-Agent: curl/8.6.0
+Accept: */*
+```
+- Request: `GET /goodies HTTP/1.1`
+- Headers:
+    ```
+    Host: localhost:42069
+    User-Agent: curl/8.6.0
+    Accept: */*
+    ```
+- Body: empty
+
+Example of HTTP `POST` request:
+```
+POST /coffee HTTP/1.1            # start-line CRLF
+Host: localhost:42069            # *( field-line CRLF )
+User-Agent: curl/8.6.0           # *( field-line CRLF )
+Accept: */*                      # *( field-line CRLF )
+Content-Type: application/json   # *( field-line CRLF )
+Content-Length: 22               # *( field-line CRLF )
+                                 # CRLF
+{"flavor":"dark mode"}           # [ message-body ]
+```
+Similar to `GET` but with a body (`{"flavor":"dark mode"}`) and content related headers (`content-type`, `conten-length`).
+
+## Parsing the `start-line`
+
+If the HTTP message is a request (not a response), the `start-line` is called the `request-line` and has this specified format (as per the RFC 9110):
+```
+HTTP-version  = HTTP-name "/" DIGIT "." DIGIT
+HTTP-name     = %s"HTTP"
+request-line  = method SP request-target SP HTTP-version
+```
+Which for a HTTP/1.1 GET translates to:
+```
+GET /coffee HTTP/1.1
+```
 
 ## netcat
 
