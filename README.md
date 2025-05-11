@@ -50,6 +50,35 @@ CRLF
 
 Check [RFC 9112](https://datatracker.ietf.org/doc/html/rfc9112) and [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110) for detailed info about HTTP semantics.
 
+Example of HTTP `GET` request:
+```
+GET /goodies HTTP/1.1
+Host: localhost:42069
+User-Agent: curl/8.6.0
+Accept: */*
+```
+- Request: `GET /goodies HTTP/1.1`
+- Headers:
+    ```
+    Host: localhost:42069
+    User-Agent: curl/8.6.0
+    Accept: */*
+    ```
+- Body: empty
+
+Example of HTTP `POST` request:
+```
+POST /coffee HTTP/1.1            # start-line CRLF
+Host: localhost:42069            # *( field-line CRLF )
+User-Agent: curl/8.6.0           # *( field-line CRLF )
+Accept: */*                      # *( field-line CRLF )
+Content-Type: application/json   # *( field-line CRLF )
+Content-Length: 22               # *( field-line CRLF )
+                                 # CRLF
+{"flavor":"dark mode"}           # [ message-body ]
+```
+Similar to `GET` but with a body (`{"flavor":"dark mode"}`) and content related headers (`content-type`, `conten-length`).
+
 ## netcat
 
 - Send data
