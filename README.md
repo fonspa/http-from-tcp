@@ -79,6 +79,19 @@ Content-Length: 22               # *( field-line CRLF )
 ```
 Similar to `GET` but with a body (`{"flavor":"dark mode"}`) and content related headers (`content-type`, `conten-length`).
 
+## Parsing the `start-line`
+
+If the HTTP message is a request (not a response), the `start-line` is called the `request-line` and has this specified format (as per the RFC 9110):
+```
+HTTP-version  = HTTP-name "/" DIGIT "." DIGIT
+HTTP-name     = %s"HTTP"
+request-line  = method SP request-target SP HTTP-version
+```
+Which for a HTTP/1.1 GET translates to:
+```
+GET /coffee HTTP/1.1
+```
+
 ## netcat
 
 - Send data
